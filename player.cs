@@ -3,40 +3,60 @@ using System;
 
 public partial class player : CharacterBody3D
 {
-	public const float Speed = 5.0f;
-	public const float JumpVelocity = 4.5f;
+    // Speed of player
+    [Export]
+    public int Speed { get; set; } = 14;
 
-	// Get the gravity from the project settings to be synced with RigidBody nodes.
-	public float gravity = ProjectSettings.GetSetting("physics/3d/default_gravity").AsSingle();
+    // Downward acceleration while in the air
+    [Export]
+    public int FallAcceleration { get; set; } = 75;
 
-	public override void _PhysicsProcess(double delta)
-	{
-		Vector3 velocity = Velocity;
+    private Vector3 _targetVelocity = Vector3.Zero;
 
-		// Add the gravity.
-		if (!IsOnFloor())
-			velocity.Y -= gravity * (float)delta;
+    public override void _PhysicsProcess(double delta)
+    {
+        // Local variable to store input direction
+        var direction = Vector3.Zero;
 
-		// Handle Jump.
-		if (Input.IsActionJustPressed("ui_accept") && IsOnFloor())
-			velocity.Y = JumpVelocity;
+        // Check for each move input and update direction
+        if (Input.IsActionPressed("move_right"))
+        {
+            direction.X += 1.0f;
+        }
+        if (Input.IsActionPressed("move_left"))
+        {
+            direction.X -= 1.0f;
+        }
+        // Worth noting in 3D XZ are the ground plane
+        if (Input.IsActionPressed("move_back"))
+        {
+            direction.Z += 1.0f;
+        }
+        if (Input.IsActionPressed("move_forward"))
+        {
+            direction.Z -= 1.0f;
+        }
 
-		// Get the input direction and handle the movement/deceleration.
-		// As good practice, you should replace UI actions with custom gameplay actions.
-		Vector2 inputDir = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down");
-		Vector3 direction = (Transform.Basis * new Vector3(inputDir.X, 0, inputDir.Y)).Normalized();
-		if (direction != Vector3.Zero)
-		{
-			velocity.X = direction.X * Speed;
-			velocity.Z = direction.Z * Speed;
-		}
-		else
-		{
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
-			velocity.Z = Mathf.MoveToward(Velocity.Z, 0, Speed);
-		}
+        // Normalize vector
+        if (direction != Vector3.Zero)
+        {
+            direction = direction.Normalized();
+            // Basis sets the rotation
+            GetNode<Node3D>("Pivot").Basis = Basis.LookingAt(direction);
+        }
 
-		Velocity = velocity;
-		MoveAndSlide();
-	}
+        // Ground velocity
+        _targetVelocity.X = direction.X * Speed;
+        _targetVelocity.Z = direction.Z * Speed;
+
+        // Vertical velocity if in air
+        if (!IsOnFloor())
+        {
+            _targetVelocity.Y -= FallAcceleration * (float)delta;
+        }
+
+        // Moving the character
+        Velocity = _targetVelocity;
+        MoveAndSlide();
+    }
 }
