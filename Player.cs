@@ -9,6 +9,14 @@ public partial class Player : CharacterBody3D
 	// Downward acceleration while in the air
 	[Export]
 	public int FallAcceleration { get; set; } = 75;
+	
+	// Vertical impulse applied to teh character upon jumping in meters per second
+	[Export]
+	public int JumpImpulse { get; set; } = 20;
+
+	// Vertical impulse applied to the character upon bouncing over a mob in meters per second
+	[Export]
+	public int BounceImpuse { get; set; } = 16;
 
 	private Vector3 _targetVelocity = Vector3.Zero;
 
@@ -52,6 +60,33 @@ public partial class Player : CharacterBody3D
 		if (!IsOnFloor())
 		{
 			_targetVelocity.Y -= FallAcceleration * (float)delta;
+		}
+
+		// Jumping
+		if (IsOnFloor() && Input.IsActionJustPressed("jump"))
+		{
+			_targetVelocity.Y = JumpImpulse;
+		}
+
+		// Iterate through all collisions that occured this frame
+		for (int index = 0; index < GetSlideCollisionCount(); index++)
+		{
+			// Get one of the collisions with the player
+			KinematicCollision3D collision = GetSlideCollision(index);
+
+			// If the collision is with a mob
+			if (collision.GetCollider() is Mob mob)
+			{
+				// We check that we are hitting it from above
+				if (Vector3.Up.Dot(collision.GetNormal()) > 0.1f)
+				{
+					// If so we squash it and bounce
+					mob.Squash();
+					_targetVelocity.Y = BounceImpuse;
+					// Prevent further duplicate calls
+					break;
+				}
+			}
 		}
 
 		// Moving the character

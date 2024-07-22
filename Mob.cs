@@ -8,6 +8,15 @@ public partial class Mob : CharacterBody3D
 	// Max speed
 	[Export]
 	public int MaxSpeed { get; set; } = 18;
+	// Emitted when the palyer jumps on a mob
+	[Signal]
+	public delegate void SquashedEventHandler();
+
+	public void Squash()
+	{
+		EmitSignal(SignalName.Squashed);
+		QueueFree();
+	}
 
 	public override void _PhysicsProcess(double delta)
 	{
