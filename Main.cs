@@ -5,17 +5,13 @@ public partial class Main : Node
 	[Export]
 	public PackedScene MobScene { get; set; }
 
-	// Called when the node enters the scene tree for the first time.
-	public override void _Ready()
-	{
-	}
+    // On initialization
+    public override void _Ready()
+    {
+        GetNode<Control>("UserInterface/Retry").Hide();
+    }
 
-	// Called every frame. 'delta' is the elapsed time since the previous frame.
-	public override void _Process(double delta)
-	{
-	}
-	
-	private void OnMobTimerTimeout()
+    private void OnMobTimerTimeout()
 	{
 		// Create a new instance of the Mob scene
 		Mob mob = MobScene.Instantiate<Mob>();
@@ -31,5 +27,24 @@ public partial class Main : Node
 
 		// Spawn the mob by adding it to the Main scene
 		AddChild(mob);
+		// Connect the mob to the score label
+		mob.Squashed += GetNode<ScoreLabel>("UserInterface/ScoreLabel").OnMobSquashed;
 	}
+
+	// When player hit
+	private void OnPlayerHit()
+	{
+		GetNode<Timer>("MobTimer").Stop();
+		GetNode<Control>("UserInterface/Retry").Show();
+	}
+
+    // On player input
+    public override void _UnhandledInput(InputEvent @event)
+    {
+        if (@event.IsActionPressed("ui_accept") && GetNode<Control>("UserInterface/Retry").Visible)
+		{
+			// Restarts current scene
+			GetTree().ReloadCurrentScene();
+		}
+    }
 }

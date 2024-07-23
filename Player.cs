@@ -18,6 +18,10 @@ public partial class Player : CharacterBody3D
 	[Export]
 	public int BounceImpuse { get; set; } = 16;
 
+	// Emitted when player is hit by a mob
+	[Signal]
+	public delegate void HitEventHandler();
+
 	private Vector3 _targetVelocity = Vector3.Zero;
 
 	public override void _PhysicsProcess(double delta)
@@ -50,6 +54,12 @@ public partial class Player : CharacterBody3D
 			direction = direction.Normalized();
 			// Basis sets the rotation
 			GetNode<Node3D>("Pivot").Basis = Basis.LookingAt(direction);
+			// Change animation speed
+			GetNode<AnimationPlayer>("AnimationPlayer").SpeedScale = 4;
+		}
+		else
+		{
+			GetNode<AnimationPlayer>("AnimationPlayer").SpeedScale = 1;
 		}
 
 		// Ground velocity
@@ -92,5 +102,20 @@ public partial class Player : CharacterBody3D
 		// Moving the character
 		Velocity = _targetVelocity;
 		MoveAndSlide();
+
+		// Pivoting character
+		var pivot = GetNode<Node3D>("Pivot");
+		pivot.Rotation = new Vector3(Mathf.Pi / 6.0f * Velocity.Y / JumpImpulse, pivot.Rotation.Y, pivot.Rotation.Z);
+	}
+
+	public void Die()
+	{
+		EmitSignal(SignalName.Hit);
+		QueueFree();
+	}
+
+	private void OnMobDetectorBodyEntered(Node3D body)
+	{
+		Die();
 	}
 }

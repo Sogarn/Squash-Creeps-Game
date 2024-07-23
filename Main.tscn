@@ -1,8 +1,10 @@
-[gd_scene load_steps=9 format=3 uid="uid://csotj33bml6l3"]
+[gd_scene load_steps=12 format=3 uid="uid://csotj33bml6l3"]
 
 [ext_resource type="PackedScene" uid="uid://bgqlodsstvwlx" path="res://Player.tscn" id="1_e0nx3"]
 [ext_resource type="Script" path="res://Main.cs" id="1_wu2uy"]
 [ext_resource type="PackedScene" uid="uid://7xykqqvas60g" path="res://Mob.tscn" id="2_dbkdo"]
+[ext_resource type="FontFile" uid="uid://bhj8cm3h1frne" path="res://fonts/Montserrat-Medium.ttf" id="4_8x3bk"]
+[ext_resource type="Script" path="res://ScoreLabel.cs" id="5_1vpoy"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_ba40n"]
 size = Vector3(60, 2, 60)
@@ -22,6 +24,10 @@ _data = {
 "tilts": PackedFloat32Array(0, 0, 0, 0, 0)
 }
 point_count = 5
+
+[sub_resource type="Theme" id="Theme_7sudb"]
+default_font = ExtResource("4_8x3bk")
+default_font_size = 22
 
 [node name="Main" type="Node"]
 script = ExtResource("1_wu2uy")
@@ -83,4 +89,48 @@ transform = Transform3D(-4.37114e-08, 0, -1, 0, 1, 0, 1, 0, -4.37114e-08, -13, 0
 wait_time = 0.5
 autostart = true
 
+[node name="UserInterface" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = SubResource("Theme_7sudb")
+
+[node name="ScoreLabel" type="Label" parent="UserInterface"]
+layout_mode = 0
+offset_left = 36.0
+offset_top = 27.0
+offset_right = 124.0
+offset_bottom = 55.0
+theme_override_colors/font_color = Color(0, 0, 0, 1)
+text = "Score: 0"
+script = ExtResource("5_1vpoy")
+
+[node name="Retry" type="ColorRect" parent="UserInterface"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.196078)
+
+[node name="Label" type="Label" parent="UserInterface/Retry"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -14.0
+offset_right = 20.0
+offset_bottom = 14.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "Press Enter to retry."
+
+[connection signal="Hit" from="Player" to="." method="OnPlayerHit"]
 [connection signal="timeout" from="MobTimer" to="." method="OnMobTimerTimeout"]
